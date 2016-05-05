@@ -1,8 +1,6 @@
 import sbt._
 import Keys._
 
-import android.Keys._
-import android.Plugin.androidBuild
 
 object Settings {
   import LibgdxBuild.libgdxVersion
@@ -54,24 +52,6 @@ object Settings {
     desktopJarName := "libgdx-demo",
     Tasks.assembly
   )
-
-  lazy val android = core ++ Tasks.natives ++ androidBuild ++ Seq(
-    libraryDependencies ++= Seq(
-      "com.badlogicgames.gdx" % "gdx-backend-android" % libgdxVersion.value,
-      "com.badlogicgames.gdx" % "gdx-platform" % libgdxVersion.value % "natives" classifier "natives-armeabi",
-      "com.badlogicgames.gdx" % "gdx-platform" % libgdxVersion.value % "natives" classifier "natives-armeabi-v7a",
-      "com.badlogicgames.gdx" % "gdx-platform" % libgdxVersion.value % "natives" classifier "natives-x86"
-    ),
-    nativeExtractions <<= (baseDirectory) { base => Seq(
-      ("natives-armeabi.jar", new ExactFilter("libgdx.so"), base / "libs" / "armeabi"),
-      ("natives-armeabi-v7a.jar", new ExactFilter("libgdx.so"), base / "libs" / "armeabi-v7a"),
-      ("natives-x86.jar", new ExactFilter("libgdx.so"), base / "libs" / "x86")
-    )},
-    platformTarget in Android := "android-21",
-    proguardOptions in Android ++= scala.io.Source.fromFile(file("core/proguard-project.txt")).getLines.toList ++
-                                   scala.io.Source.fromFile(file("android/proguard-project.txt")).getLines.toList
-  )
-
 }
 
 object Tasks {
@@ -150,16 +130,10 @@ object LibgdxBuild extends Build {
     settings = Settings.desktop
   ).dependsOn(core)
 
-  lazy val android = Project(
-    id       = "android",
-    base     = file("android"),
-    settings = Settings.android
-  ).dependsOn(core)
-
   lazy val all = Project(
     id       = "all-platforms",
     base     = file("."),
     settings = Settings.core
-  ).aggregate(core, desktop, android)
+  ).aggregate(core, desktop)
 }
 
